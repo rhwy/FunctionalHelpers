@@ -57,8 +57,10 @@ namespace FunctionalHelpers.Tests
         public void use_result_with_arrows_with_success()
         {
             Func<int,Result<int>> inc = (int value) => Success(value+1);
+            
             NextOperationResult<int> divideBy(int divider) => 
                 (value) => value.Then(x=>Success(x/divider));
+
             var sut = Success(4)
                     >= inc
                     >= inc
@@ -74,15 +76,18 @@ namespace FunctionalHelpers.Tests
         public void use_result_with_arrows_with_failure()
         {
             Func<int,Result<int>> inc = (int value) => Success(value+1);
+
             NextOperationResult<int> divideBy(int divider) => 
                 (value) => value.Then(x=>Success(x/divider));
+
             var sut = Success(4)
                     >= inc
                     >= inc
                     >= divideBy(0)
                     <= (
                         success : i => $"value={i}",
-                        failure : e => e.Message);
+                        failure : e => e.Message
+                    );
 
             Assert.Equal("Attempted to divide by zero.",sut);
         }
