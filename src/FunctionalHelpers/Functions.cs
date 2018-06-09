@@ -49,7 +49,21 @@ namespace FunctionalHelpers
                     ? Throw<T>(Doc.En.ValueCantBeNull)
                     : value;
             }
+
+            public static Option<T> Value<T>(T Value)
+            => SomeValue<T>(Value);
         }
+        
+        public class EnsureChecker<T>
+        {
+            T Value;
+            EnsureChecker(T value)
+            {
+                Value = value;
+            } 
+        }
+        public static bool IsDefault<T>(T value)
+        => EqualityComparer<T>.Default.Equals(default(T),value);
         
         ///<summary>
         ///simplified throw of our internal exception type
@@ -66,6 +80,11 @@ namespace FunctionalHelpers
         ///create a successful result from value
         ///</summary>
         public static Result<T> Failure<T>(string message) => new Failure<T>(message);
+
+        ///<summary>
+        ///create a some option
+        ///</summary>
+        public static Option<T> SomeValue<T>(T value) => Some<T>.NewValue(value);
 
     }
     public class FunctionalHelpersException : Exception {
@@ -100,6 +119,26 @@ namespace FunctionalHelpers
                     return none();
             }
         }
+
+        public static void WithValue<T>(this Option<T> currentOption,
+            Action  none, Action<T> some)
+        {
+            switch (currentOption)
+            {
+                case Some<T> someValue:
+                    some(someValue.Value);
+                    break;
+                default:
+                    none();
+                    break;
+            }
+        }
+        public static Option<T> AsOption<T>(this T obj)
+        {
+            if(IsDefault<T>(obj))
+                return new None<T>();
+            return Some<T>.NewValue(obj);
+        }
     }
     public struct None<T> : Option<T>
     {
@@ -118,6 +157,16 @@ namespace FunctionalHelpers
         public static Some<T> NewValue(T value) => new Some<T>(value);
     }
 
+    public struct EnsureOption<T> : Option<T>
+    {
+        public bool HasValue {get;}
+        public Option<T> Value {get;}
+        public EnsureOption(T value)
+        {
+            HasValue = true;
+            Value = None<T>.New;
+        }
+    }
     public abstract class Result {
         public static Result operator >= (Result current, Func<Result, Result> next)
         {
@@ -164,6 +213,17 @@ namespace FunctionalHelpers
             (Func<T,object> success, Func<FunctionalHelpersException,object> failure) next)
         {
             return current.Final(next.success,next.failure);
+        }
+
+
+        public static Result<T> operator | ( Result<T> current, NextOperationResult<T> next)
+        {
+            return next(current);
+        }
+
+        public static Result<T> operator | ( Result<T> current, Func<T,Result<T>> next)
+        {
+            return current.Then(next);
         }
     }
 

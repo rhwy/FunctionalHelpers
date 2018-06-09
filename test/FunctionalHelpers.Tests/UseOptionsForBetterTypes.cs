@@ -1,5 +1,6 @@
 namespace FunctionalHelpers.Tests
 {
+    using System;
     using Xunit;
 
     public class UseOptionsForBetterTypes
@@ -23,5 +24,27 @@ namespace FunctionalHelpers.Tests
             Assert.Equal(42,value);
             
         }
+
+        [Fact]
+        public void use_option_from_valid_existing_object()
+        {
+            var hello = "hello";
+            var opt = hello.AsOption();
+
+            opt.WithValue(
+                none : ()=> throw new Exception("should not happend"),
+                some : value => Assert.Equal("hello",value)
+            );
+        }
+
+        [Fact]
+        public void use_option_from_valid_null_object()
+        {
+            object IamBad = null;
+            var opt = IamBad.AsOption();
+
+            Assert.Equal(None<object>.New,opt);
+        }
+
     }
 }

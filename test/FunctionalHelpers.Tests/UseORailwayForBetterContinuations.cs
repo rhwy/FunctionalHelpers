@@ -42,6 +42,7 @@ namespace FunctionalHelpers.Tests
         public void use_result_only_with_success_when_needed()
         {
             Result<int> inc(int value) => Success(value+1);
+            
             Func<int,Result<int>> div(int divider) => (int value) => Success(value/divider);
             var sut = inc(1)
                 .Then(inc)
@@ -57,7 +58,7 @@ namespace FunctionalHelpers.Tests
         public void use_result_with_arrows_with_success()
         {
             Func<int,Result<int>> inc = (int value) => Success(value+1);
-            
+
             NextOperationResult<int> divideBy(int divider) => 
                 (value) => value.Then(x=>Success(x/divider));
 
